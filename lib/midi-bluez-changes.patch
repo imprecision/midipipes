@@ -1,0 +1,117 @@
+diff --git a/obexd/client/sync.c b/obexd/client/sync.c
+index 548c318c3..d3b9dc9a7 100644
+--- a/obexd/client/sync.c
++++ b/obexd/client/sync.c
+@@ -182,31 +182,31 @@ static const GDBusMethodTable sync_methods[] = {
+ 
+ static void sync_free(void *data)
+ {
+-	struct sync_data *sync = data;
++	struct sync_data *obc_sync = data;
+ 
+-	obc_session_unref(sync->session);
+-	g_free(sync->phonebook_path);
+-	g_free(sync);
++	obc_session_unref(obc_sync->session);
++	g_free(obc_sync->phonebook_path);
++	g_free(obc_sync);
+ }
+ 
+ static int sync_probe(struct obc_session *session)
+ {
+-	struct sync_data *sync;
++	struct sync_data *obc_sync;
+ 	const char *path;
+ 
+ 	path = obc_session_get_path(session);
+ 
+ 	DBG("%s", path);
+ 
+-	sync = g_try_new0(struct sync_data, 1);
+-	if (!sync)
++	obc_sync = g_try_new0(struct sync_data, 1);
++	if (!obc_sync)
+ 		return -ENOMEM;
+ 
+-	sync->session = obc_session_ref(session);
++	obc_sync->session = obc_session_ref(session);
+ 
+ 	if (!g_dbus_register_interface(conn, path, SYNC_INTERFACE, sync_methods,
+ 						NULL, NULL, sync, sync_free)) {
+-		sync_free(sync);
++		sync_free(obc_sync);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -222,7 +222,7 @@ static void sync_remove(struct obc_session *session)
+ 	g_dbus_unregister_interface(conn, path, SYNC_INTERFACE);
+ }
+ 
+-static struct obc_driver sync = {
++static struct obc_driver obc_sync = {
+ 	.service = "SYNC",
+ 	.uuid = SYNC_UUID,
+ 	.target = OBEX_SYNC_UUID,
+@@ -241,7 +241,7 @@ int sync_init(void)
+ 	if (!conn)
+ 		return -EIO;
+ 
+-	err = obc_driver_register(&sync);
++	err = obc_driver_register(&obc_sync);
+ 	if (err < 0) {
+ 		dbus_connection_unref(conn);
+ 		conn = NULL;
+@@ -258,5 +258,5 @@ void sync_exit(void)
+ 	dbus_connection_unref(conn);
+ 	conn = NULL;
+ 
+-	obc_driver_unregister(&sync);
++	obc_driver_unregister(&obc_sync);
+ }
+diff --git a/profiles/audio/media.c b/profiles/audio/media.c
+index 23d15611b..3965b1bd7 100644
+--- a/profiles/audio/media.c
++++ b/profiles/audio/media.c
+@@ -108,7 +108,7 @@ struct media_player {
+ 	uint8_t			volume;
+ 	GTimer			*timer;
+ 	bool			play;
+-	bool			pause;
++	bool			media_pause;
+ 	bool			next;
+ 	bool			previous;
+ 	bool			control;
+@@ -1238,13 +1238,13 @@ static bool stop(void *user_data)
+ 	return media_player_send(mp, "Stop");
+ }
+ 
+-static bool pause(void *user_data)
++static bool media_pause(void *user_data)
+ {
+ 	struct media_player *mp = user_data;
+ 
+ 	DBG("");
+ 
+-	if (!mp->pause || !mp->control)
++	if (!mp->media_pause || !mp->control)
+ 		return false;
+ 
+ 	return media_player_send(mp, "Pause");
+@@ -1288,7 +1288,7 @@ static struct avrcp_player_cb player_cb = {
+ 	.set_volume = set_volume,
+ 	.play = play,
+ 	.stop = stop,
+-	.pause = pause,
++	.pause = media_pause,
+ 	.next = next,
+ 	.previous = previous,
+ };
+@@ -1668,7 +1668,7 @@ static gboolean set_player_property(struct media_player *mp, const char *key,
+ 		return set_flag(mp, &var, &mp->play);
+ 
+ 	if (strcasecmp(key, "CanPause") == 0)
+-		return set_flag(mp, &var, &mp->pause);
++		return set_flag(mp, &var, &mp->media_pause);
+ 
+ 	if (strcasecmp(key, "CanGoNext") == 0)
+ 		return set_flag(mp, &var, &mp->next);

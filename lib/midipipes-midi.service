@@ -1,0 +1,9 @@
+[Unit]
+Description=MIDI Pipes USB
+
+[Service]
+Type=simple
+ExecStart="{MIDIPI_USER}/bin/midi.py"
+
+[Install]
+WantedBy=multi-user.target

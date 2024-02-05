@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="usb", DRIVER=="usb", RUN+="/usr/bin/python {MIDIPI_USER}/bin/midi.py"
+ACTION=="remove", ENV{SUBSYSTEM}=="usb", ENV{DEVTYPE}=="usb_device", RUN+="/usr/bin/python {MIDIPI_USER}/bin/midi.py"

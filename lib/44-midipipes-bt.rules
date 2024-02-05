@@ -1,0 +1,1 @@
+ACTION=="add|remove", SUBSYSTEM=="bluetooth", RUN+="/usr/bin/python {MIDIPI_USER}/bin/midi.py"

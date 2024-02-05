@@ -1,0 +1,9 @@
+[Unit]
+Description=MIDI Pipes Web
+
+[Service]
+Type=simple
+ExecStart="{MIDIPI_USER}/bin/web.py"
+
+[Install]
+WantedBy=multi-user.target

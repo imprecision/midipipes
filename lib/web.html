@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<!-- 
+Title: web.html
+Description: Web interface for MIDI Pipes
+
+Copyright (C) 2024 imprecision
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation; either version 3 of the License,
+or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+For more details, see the LICENSE file.
+-->
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>MIDI Pipes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            background: rgb(218, 218, 218);
+            background: linear-gradient(180deg, rgb(218, 218, 218) 50%, rgb(150, 150, 150) 90%);
+            background-repeat: no-repeat;
+            min-height: 100%;
+        }
+
+        body {
+            color: #363636;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        h1 {
+            background-image: url("/img-logo");
+            background-repeat: no-repeat;
+            background-position: 0.5rem top;
+            background-size: 5rem;
+            font-weight: lighter;
+            letter-spacing: -0.2rem;
+            font-size: 2rem;
+            text-align: start;
+            padding: 0.1rem 0 0rem 6rem;
+            line-height: 3rem;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        h1 strong {
+            font-weight: bold;
+        }
+
+        h1 span {
+            float: right;
+            padding-right: 1.2rem;
+            line-height: 2.8rem;
+            color: rgb(134, 134, 134);
+            font-weight: bold;
+        }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 0;
+            margin-top: 1vh;
+        }
+
+        a {
+            display: inline-block;
+            background: rgb(40, 40, 40);
+            color: #efefef;
+            text-decoration: none;
+            padding: 0.8rem;
+            width: 40vw;
+            margin-bottom: 0.1rem;
+            margin-right: 0.1rem;
+            border-radius: 0.20rem;
+            font-weight: bold;
+            letter-spacing: -0.035rem;
+            text-align: left;
+            font-size: 0.8rem;
+        }
+
+        .box {
+            position: relative;
+            border-radius: 0.2rem;
+            background-color: #efefef;
+            opacity: 0.85;
+            padding: 1rem;
+            margin: 1vh 3vw 0 3vw;
+            overflow-x: auto;
+        }
+
+        #midi.box ul li {
+            list-style: disc;
+            margin: 0 1rem;
+        }
+
+        #audio.box ul li {
+            list-style: none;
+            padding: 1rem;
+        }
+
+        #audio {
+            margin-bottom: 3rem;
+        }
+
+        .box h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .box>div>span {
+            display: inline-block;
+            padding-right: 0.5rem;
+        }
+
+        .log {
+            display: block;
+            margin-top: 1rem;
+            white-space: pre;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: small;
+        }
+
+        .slider {
+            /* -webkit-appearance: none; */
+            width: 100%;
+            height: 10px;
+            border-radius: 0.2rem;
+            background: #ffffff;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            margin-top: 1rem;
+        }
+
+        .slider::-webkit-slider-thumb {
+            /* -webkit-appearance: none; */
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border: none;
+            border-radius: 50%;
+            background: #009fff;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border: none;
+            border-radius: 50%;
+            background: #009fff;
+            cursor: pointer;
+        }
+
+        .col_green {
+            background-color: #00b900;
+        }
+
+        .col_blue {
+            background-color: #009fff;
+        }
+
+        .col_yellow {
+            background-color: rgb(255, 186, 21);
+        }
+
+        .col_red {
+            background-color: rgb(255, 81, 81);
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .show {
+            display: block;
+        }
+
+        .close {
+            float: right;
+            padding: 0 0 1rem 1rem;
+            cursor: pointer;
+        }
+
+        .dev_default {
+            background-color: rgb(255, 186, 21);
+            border-radius: 0.2rem;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out 3;
+        }
+
+        #audio a {
+            float: inline-end;
+            width: auto;
+            padding: 0.1rem 0.3rem 0.3rem 0.3rem;
+            background-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="nav_switch">
+        MIDI <strong>Pipes</strong>
+        <span class="shake">▷</span>
+    </h1>
+    <div class="nav hide">
+        <a href="/" data-type="func" data-func="ping()" data-hdr="Refreshing..." data-msg="Updates show automatically,<br><i>but checking again right now!</i>..." class="col_green">Refresh</a>
+        <a href="/midi-update" data-type="json" data-hdr="Checking MIDI" data-msg="Checking for MIDI device changes...">Update MIDI</a>
+        <a href="/logs" data-type="text" data-hdr="Logs" class="col_blue">View Logs</a>
+        <a href="/audio-update" data-type="json" data-hdr="Checking Audio" data-msg="Checking for USB audio device changes...">Update Audio</a>
+        <a href="/config" data-type="json" data-hdr="Audio Config" class="col_blue">Audio Config</a>
+        <a href="/display" data-type="json" data-hdr="Updating display" data-msg="Updating display (this can take a few seconds)...">Update Display</a>
+        <a href="/restart" data-type="json" data-conf="true" data-hdr="Restarting" data-msg="Restarting, this will take a minute or so..." class="col_yellow">Restart</a>
+        <a href="/shutdown" data-type="json" data-conf="true" data-hdr="Shutting down" data-msg="Shutting down, this will take a minute or so..." class="col_red">Shutdown</a>
+    </div>
+    <div id="msg" class="box hide"></div>
+    <div id="midi" class="box"></div>
+    <div id="audio" class="box"></div>
+    <script>
+        const links = document.querySelectorAll('a[data-type]');
+        const msgs = document.getElementById('msg');
+        const midi = document.getElementById('midi');
+        const audi = document.getElementById('audio');
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('nav_switch').addEventListener('click', function () {
+                document.querySelector('#nav_switch span').classList.remove('shake');
+                document.querySelector('.nav').classList.toggle('hide');
+                this.innerHTML = this.innerHTML.includes('▽') ? this.innerHTML.replace('▽', '▷') : this.innerHTML.replace('▷', '▽');
+            });
+
+            links.forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    setMsgs();
+
+                    link.hasAttribute('data-conf') ? confirmResult = confirm('Sure?') : confirmResult = true;
+                    if (confirmResult) {
+
+                        if (link.hasAttribute('data-msg')) {
+                            setMsgs(`<h2><span> ℹ️ </span> ${link.getAttribute('data-hdr')}</h2>${link.getAttribute('data-msg')}`);
+                        }
+
+                        if (link.getAttribute('data-type') == "func") {
+                            eval(link.getAttribute('data-func'));
+                            setTimeout(function () {
+                                setMsgs();
+                            }, 2000);
+                        } else {
+                            fetch(link.getAttribute('href'))
+                                .then(response => {
+                                    if (response.headers.get('content-type').includes('application/json')) {
+                                        return response.json();
+                                    } else {
+                                        return response.text();
+                                    }
+                                })
+                                .then(data => {
+                                    console.log('LINK/DATA/OK:', data);
+                                    let linkResponse = "";
+                                    if (link.getAttribute('data-type') === 'text') {
+                                        linkResponse = data;
+                                    } else if (link.getAttribute('data-type') === 'json') {
+                                        linkResponse = JSON.stringify(data, null, 4);
+                                    }
+
+                                    if (data === true) {
+                                        setTimeout(function () {
+                                            setMsgs();
+                                        }, 1000);
+                                    } else {
+                                        setMsgs(`<h2><span> ℹ️ </span> ${link.getAttribute('data-hdr')}</h2><code class="log">${linkResponse}</code>`);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                })
+                                .finally(() => {
+                                    // 
+                                });
+                        }
+                    }
+                });
+            });
+        });
+
+        function setMsgs(msg = "") {
+            if (msg !== "") {
+                msgs.innerHTML = '<div class="close" onclick="setMsgs()"> ❌ </div>';
+                msgs.innerHTML += msg;
+                msgs.classList.remove("hide");
+            } else {
+                msgs.classList.add("hide");
+                msgs.innerHTML = "";
+            }
+        }
+
+        function getMidi() {
+            fetch(`/midi-view`)
+                .then(response => {
+                    if (response.headers.get('content-type').includes('application/json')) {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    console.log("DATA/MIDI", data);
+
+                    if (data === null || data.length < 1) {
+                        midi.innerHTML = "<h2><span> 🎹 </span> No MIDI devices attached</h2>Plug-in, connect Bluetooth or switch on a MIDI device to see it here.";
+                    } else {
+                        let list = "";
+                        for (let i = 0; i < data.length; i++) {
+                            list += `<li>${data[i]}</li>`;
+                        }
+                        list = `<h2><span> 🎹 </span> MIDI</h2><ul>${list}</ul>`;
+                        midi.innerHTML = list;
+                    }
+                })
+                .catch(error => {
+                    console.error("DATA/MIDI/ERROR", error);
+                });
+        }
+
+        function getAudio() {
+            fetch(`/config`)
+                .then(response => {
+                    if (response.headers.get('content-type').includes('application/json')) {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    console.log("DATA/AUDIO", data);
+
+                    let list = "";
+                    data["detail"].forEach(function (item) {
+                        let default_output = item["type"] == "sink" && data["output"] == item["id"] ? true : false;
+                        let li_type = item["type"] == "sink" ? ' 🔉 ' : " 🎤 ";
+                        let li_html = "";
+
+                        if (item["type"] == "sink") {
+                            li_outputswitch = `<a href="/audio-out?out=${item["name"]}" title="Enable this output (and route all audio to it)"> 🎛️ </a>`;
+                        } else {
+                            li_outputswitch = "";
+                        }
+
+                        if (default_output) {
+                            li_html = `<div><strong> 🔊 ${item["desc"]}</strong></div>`;
+                        } else {
+                            li_html = `<div>${li_outputswitch} ${li_type} ${item["desc"]}</div>`;
+                        }
+
+                        list += `<li class="${default_output ? "dev_default" : "dev_normal"}">${li_html}<input type="range" min="0" max="100" value="${item["vol"]}" class="slider vol_device" data-device-id="${item["id"]}" data-device-type="${item["type"]}"></li>`;
+                    });
+                    list = `<h2><span> 🔈 </span> Audio</h2><ul>${list}</ul>`;
+                    audi.innerHTML = list;
+
+                    document.querySelectorAll('.vol_device').forEach(function (item) {
+                        console.log("DATA/AUDIO/VOL/ITEM", item.attributes);
+                        item.addEventListener("change", function () {
+                            console.log("DATA/AUDIO/VOL/CHANGE", item.getAttribute("data-device-id"), item.getAttribute("data-device-type"), item.value);
+                            fetch(`/audio-vol?vol=${item.value}&dev=${item.getAttribute("data-device-id")}&typ=${item.getAttribute("data-device-type")}`)
+                                .then(response => {
+                                    if (response.headers.get('content-type').includes('application/json')) {
+                                        return response.json();
+                                    }
+                                })
+                                .then(data => {
+                                    console.log("VOL/CHANGED", data);
+                                })
+                                .catch(error => {
+                                    console.error("VOL/ERROR", error);
+                                });
+                        });
+                    });
+
+                    document.querySelectorAll('#audio a').forEach(function (item) {
+                        console.log("DATA/AUDIO/OUTPUT/ITEM", item.attributes);
+                        item.addEventListener("click", function () {
+                            event.preventDefault();
+                            console.log("DATA/AUDIO/OUTPUT/CHANGE", item.getAttribute("href"));
+                            fetch(item.getAttribute("href"))
+                                .then(response => {
+                                    if (response.headers.get('content-type').includes('application/json')) {
+                                        return response.json();
+                                    }
+                                })
+                                .then(data => {
+                                    console.log("OUTPUT/CHANGED", data);
+                                    ping();
+                                })
+                                .catch(error => {
+                                    console.error("OUTPUT/ERROR", error);
+                                });
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error("DATA/AUDIO/ERROR", error);
+                });
+        }
+
+        function ping() {
+            getMidi();
+            getAudio();
+        }
+
+        setInterval(function () {
+            ping();
+        }, 60000);
+
+        ping();
+    </script>
+</body>
+
+</html>

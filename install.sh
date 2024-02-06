@@ -112,7 +112,7 @@ echo
 echo " 🎹 Enable SPI for GPIO display support..."
 echo
 
-echo "dtparam=spi=on" | tee -a /boot/config.txt
+echo "dtparam=spi=on" | tee -a /boot/firmware/config.txt
 
 echo
 echo " 🎹 Installing pip packages for display support..."
